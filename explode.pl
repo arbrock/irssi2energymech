@@ -20,3 +20,45 @@
 # [17:51:45] *** Joins: Inglorion (~inglorion@c-76-126-113-28.hsd1.ca.comcast.net)
 # [19:03:31] *** Ralas is now known as Ralas|afk
 
+my $filename = shift @ARGV;
+if ($filename eq "") {
+  die "Usage: $0 <in-file>\n";
+}
+
+open(my $fh, "<", $filename) or die "Could not open file $filename.\n";
+$filename =~ /(.+).log/;
+my $basename = $1;
+mkdir($basename) && chdir($basename) || die "Could not mkdir/chdir to $basename.\n";
+
+my $dfh; my $dfname = "";
+my $last_timei = ""; my $fake_seconds = 0;
+
+while(my $line = <$fh>) {
+  if ($line =~ /(\d{4}-\d\d-\d\d) (\d\d:\d\d) -\d{4}-!-\s+(.*)/) {
+      # a regular text line: since we are running after augment, it has all the data we need
+      my $curr_date = $1;
+      my $curr_time = $2;
+      my $text = $3;
+      if(not $curr_date eq $dfname) {
+        # need to change files
+        close($dfh);
+        open($dfh, ">>", $curr_date);
+        $dfname = $curr_date;
+      }
+      # irssi doesn't log seconds, so we need to synthetically generate them
+      # We increment seconds to well-order the events
+      if($curr_time eq $last_time) {
+        $fake_seconds++;
+        if($fake_seconds >= 60) {
+          warn "More than 60 messages in a minute at $basename:$dfname:$last_time.\n";
+        }
+      } else {
+        $last_time = $curr_time;
+        $fake_seconds = 0;
+      }
+      my $pretty_seconds = sprintf("%02d", $fake_seconds);
+      print $dfh "[$curr_time:$pretty_seconds] $text\n";
+  }
+}
+
+close $dfh;
