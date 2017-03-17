@@ -34,7 +34,7 @@ my $dfh; my $dfname = "";
 my $last_timei = ""; my $fake_seconds = 0;
 
 while(my $line = <$fh>) {
-  if ($line =~ /(\d{4}-\d\d-\d\d) (\d\d:\d\d) -\d{4}-!-\s+(.*)/) {
+  if ($line =~ /(\d{4}-\d\d-\d\d) (\d\d:\d\d) -\d{4}\s*(.*)/) {
       # a regular text line: since we are running after augment, it has all the data we need
       my $curr_date = $1;
       my $curr_time = $2;
@@ -57,6 +57,26 @@ while(my $line = <$fh>) {
         $fake_seconds = 0;
       }
       my $pretty_seconds = sprintf("%02d", $fake_seconds);
+      # replace the -!- in joins/parts/mode changes with ***
+      if($text =~ /^-!-\s+(.*)/) {
+        $text = $1;
+        if($text =~ /(\w+) \[(.+)\] has joined/) {
+          $text = "Joins: $1 ($2)";
+        } elsif ($text =~ /(\w+) \[(.+)\] has left \S+ \[(.*)\]/) {
+          $text = "Parts: $1 ($2) ($3)";
+        } elsif ($text =~ /(\w+) \[(.+)\] has quit \[(.*)\]/) {
+          $text = "Quits: $1 ($2) ($3)";
+        } elsif ($text =~ /mode\/\S+ \[(.+)\] by (\w+)/) {
+          $text = "$2 sets mode: $1";
+        }
+        # TODO netsplits, kicks, topics
+        # irssi format is:
+        #-!- Netsplit *.net <-> *.split quits: mrwright
+        #-!- Netsplit over, joins: mrwright
+        #-!- rbraun was kicked from #srsbusinesslounge by rbraun [-.-]
+        #-!- rbraun changed the topic of #cslounge-politics to: blah blah blah noone cares
+        $text = "*** $text";
+      }
       print $dfh "[$curr_time:$pretty_seconds] $text\n";
   }
 }
