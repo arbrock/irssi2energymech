@@ -1,4 +1,6 @@
 #!/usr/bin/perl
+# (C) Andrew Brock 2017
+# GPLv3 or later
 
 # Convert a non-rotated irssi log into a directory of rotated energymech logs
 #

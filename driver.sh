@@ -1,4 +1,6 @@
 #!/bin/sh
+# (C) Andrew Brock 2017
+# GPLv3 or later
 
 export BASEDIR=`readlink -f $(dirname $0)`
 RUN="sh -vc"

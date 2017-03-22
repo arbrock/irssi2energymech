@@ -1,4 +1,6 @@
 #!/usr/bin/perl
+# (C) Andrew Brock 2017
+# GPLv3 or later
 #
 # Reformat lines of the format:
 # --- Log opened Sun Nov 08 00:33:38 2009
